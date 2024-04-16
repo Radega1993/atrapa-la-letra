@@ -1,15 +1,21 @@
-# Etapa de construcción
-FROM node:14 as build
+# pull official base image
+FROM node:19-alpine AS builder
+
+# set working directory
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . ./
+
+# install app dependencies
+COPY package.json ./
+
+# add app
+COPY . .
+
+# build the folder
 RUN npm run build
 
-# Etapa de producción
-FROM nginx:stable-alpine
-COPY --from=build /app/build /usr/share/nginx/html
-# Copia de configuración personalizada de Nginx si es necesario
-# COPY nginx.conf /etc/nginx/nginx.conf
-EXPOSE 80
+# Handle Nginx
+FROM nginx:stable-alpine AS prod-stage
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=builder /app/build /usr/share/nginx/html
+EXPOSE 8089
 CMD ["nginx", "-g", "daemon off;"]
