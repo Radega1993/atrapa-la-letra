@@ -19,9 +19,6 @@ RUN npm run build
 # Use nginx alpine image for the production stage
 FROM nginx:stable-alpine AS prod-stage
 
-# Copy the nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
 # Copy the build directory from the builder stage to the nginx serve directory
 COPY --from=builder /app/build /usr/share/nginx/html
 
