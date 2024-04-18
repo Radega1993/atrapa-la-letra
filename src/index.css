@@ -9,3 +9,94 @@ html, body, #root {
   height: 100vh; /* Altura del 100% del viewport */
   width: 100vw; /* Ancho del 100% del viewport */
 }
+
+.balloon {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border-radius: 50%;
+  background-color: #FF5733;
+  color: white;
+  font-size: 24px;
+}
+
+.balloon span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background-color: #FF5733;
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0; 
+  transition: transform 0.5s, opacity 0.5s;
+  transform: scale(0);
+}
+
+.balloon.exploded {
+  background-color: transparent; 
+  color: transparent; 
+}
+
+.balloon.exploded span {
+  opacity: 1;
+  transform: scale(1) translate(var(--tx), var(--ty));
+}
+
+.balloon::after { /* tail of the balloon */
+  content: '';
+  width: 20px;
+  height: 20px;
+  background-color: #FF5733;
+  position: absolute;
+  bottom: -10px;
+  left: 40px;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.balloon::before { /* rope of the balloon */
+  content: '';
+  width: 2px; /* width of the rope */
+  height: 50px; /* length of the rope */
+  background-color: #654321; /* rope color */
+  position: absolute;
+  bottom: -55px; /* adjust based on the length of the tail */
+  left: 50px; /* align with the center of the balloon */
+}
+
+.balloon.exploded {
+  background-color: transparent; /* Makes the balloon transparent */
+  color: transparent; /* Hides the letter */
+  overflow: visible;
+}
+
+.balloon.exploded::before, .balloon.exploded::after {
+  content: '';
+  background-color: #FF5733; /* fragments should match balloon color */
+  width: 50px; /* increased size of fragments */
+  height: 70px; /* increased size of fragments */
+  position: absolute;
+  border-radius: 50%; /* make fragments rounded */
+  animation: explode 0.75s ease-out forwards; /* slower exploding animation */
+}
+
+.balloon.exploded::before {
+  top: 20px; /* initial position slightly adjusted */
+  left: -30px;
+  transform: scale(0);
+}
+
+.balloon.exploded::after {
+  bottom: 20px;
+  right: -30px;
+  transform: scale(0);
+}
+
+@keyframes explode {
+  to {
+    transform: scale(1.5) translate(-80px, -80px); /* larger movement and scale */
+    opacity: 0.3; /* fragments fade out slower */
+  }
+}

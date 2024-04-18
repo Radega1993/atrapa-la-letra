@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 
 import Swal from 'sweetalert2';
-import { HeartIcon } from '@heroicons/react/24/solid'; // Importa correctamente para Heroicons v2
+import { HeartIcon } from '@heroicons/react/24/solid';
 import { data } from '../data/levels';
 import LetterComponent from './LetterComponent';
 import ImageComponent from './ImageComponent';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 
 const Game = () => {
     const navigate = useNavigate();
+    const { level } = useParams();
 
     const [currentLevel, setCurrentLevel] = useState(0);
     const [currentImage, setCurrentImage] = useState(data[0]);
@@ -20,11 +21,12 @@ const Game = () => {
     const [lives, setLives] = useState(3);
     const [levelsCompleted, setLevelsCompleted] = useState(0);
 
-    const getDisplayWord = () => {
-        let word = currentImage.word.split('');
-        word[currentImage.missingIndex] = '_';
-        return word.join('');
-    };
+    useEffect(() => {
+        const levelData = data.filter(item => item.lvl === parseInt(level));
+        const randomIndex = Math.floor(Math.random() * levelData.length);
+        setCurrentImage(levelData[randomIndex]);
+        setMissingLetter(levelData[randomIndex].word[levelData[randomIndex].missingIndex]);
+    }, [level]);
 
     useEffect(() => {
         let allLetters = generateLetters();
@@ -33,35 +35,41 @@ const Game = () => {
 
     useEffect(() => {
         const addLetter = () => {
-            // Añadir nueva letra si hay menos de 4 en pantalla.
-            if (activeLetters.length < 4) {
-                if (letterPool.length === 0) {
-                    // Regenerar el pool de letras si está vacío
-                    setLetterPool(generateLetters());
+            // Determina cuántas letras se pueden agregar sin superar el límite de 4
+            const maxLettersToAdd = 3 - activeLetters.length;
+            if (maxLettersToAdd > 0) {
+                if (letterPool.length < maxLettersToAdd) {
+                    setLetterPool(generateLetters()); // Regenera el pool si las letras disponibles son menos que las necesarias
                 }
-                const newLetter = letterPool.shift();
-                setActiveLetters(currentLetters => [...currentLetters, { letter: newLetter, id: Math.random() }]);
+                const lettersToAdd = Math.min(Math.floor(Math.random() * 3) + 1, maxLettersToAdd);
+                const newLetters = letterPool.splice(0, lettersToAdd); // Toma las primeras 'lettersToAdd' letras del pool
+                // Agrega las nuevas letras a las letras activas
+                setActiveLetters(currentLetters => [
+                    ...currentLetters,
+                    ...newLetters.map(letter => ({ letter, id: Math.random() })) // Crea un objeto para cada letra con un ID aleatorio
+                ]);
             }
         };
     
-        addLetter(); // Añadir la primera letra inmediatamente.
+        addLetter(); // Llama a addLetter inmediatamente
     
         const intervalId = setInterval(() => {
-            addLetter();
-        }, 500); // Añadir nuevas letras cada 500 milisegundos.
+            addLetter(); // Continúa agregando letras cada 500 ms
+        }, 500); 
     
         return () => clearInterval(intervalId);
-    }, [activeLetters.length]); // Eliminar letterPool de las dependencias para evitar reactivaciones innecesarias.
+    }, [activeLetters.length, letterPool]);
     
     
     const generateLetters = () => {
         let randomLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => l !== missingLetter);
         randomLetters.sort(() => 0.5 - Math.random());
-        let lettersToShow = randomLetters.slice(0, 9);
-        lettersToShow.push(missingLetter);
+        let lettersToShow = randomLetters.slice(0, 8);
+        lettersToShow.push(missingLetter, missingLetter, missingLetter, missingLetter,missingLetter);
         lettersToShow.sort(() => 0.5 - Math.random());
         return lettersToShow;
     };
+    
 
     const handleExit = (letterId) => {
         setActiveLetters(currentLetters => currentLetters.filter(letter => letter.id !== letterId));
@@ -69,16 +77,35 @@ const Game = () => {
 
     useEffect(() => {
         if (selectedLetters.length > 0) {
-            const lastSelectedLetter = selectedLetters.at(-1); // Simplificado usando .at(-1)
+            const lastSelectedLetter = selectedLetters.at(-1);
             if (lastSelectedLetter === missingLetter) {
-                setLevelsCompleted(prev => prev + 1); // Incrementar el contador de niveles completados
-                // Selecciona siempre un nuevo nivel aleatoriamente, eliminando la condición final del juego
-                const nextIndex = Math.floor(Math.random() * data.length);
-                setCurrentLevel(nextIndex);
-                setCurrentImage(data[nextIndex]);
-                setMissingLetter(data[nextIndex].word[data[nextIndex].missingIndex]);
-                setActiveLetters([]);
-                setLetterPool(generateLetters()); // Asegúrate de regenerar el pool de letras
+                setLevelsCompleted(prev => prev + 1);
+    
+                // Suponiendo que 'currentImage' tenga todos los datos del nivel actual,
+                // incluido el índice actual y la URL de la imagen.
+                const currentWord = currentImage.word;
+                const currentImageUrl = `/img/${currentImage.url}`;
+    
+                Swal.fire({
+                    title: '¡Muy bien!',
+                    html: `<p>La palabra correcta es <strong>${currentWord}</strong></p>
+                            <div style="text-align: center;"><img src="${currentImageUrl}" alt="Imagen" style="width: 100%; max-width: 300px; margin: auto; display: block;"/></div>`,
+                    icon: 'success',
+                    confirmButtonText: 'Siguiente',
+                    allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Genera un nuevo índice aleatorio para el siguiente nivel y actualiza el estado correspondiente.
+                        const levelData = data.filter(item => item.lvl === parseInt(level));
+                        const nextIndex = Math.floor(Math.random() * levelData.length);
+    
+                        setCurrentLevel(nextIndex);
+                        setCurrentImage(levelData[nextIndex]);
+                        setMissingLetter(levelData[nextIndex].word[levelData[nextIndex].missingIndex]);
+                        setActiveLetters([]);
+                        setLetterPool(generateLetters());
+                    }
+                });
             } else {
                 if (lives > 1) {
                     setLives(prev => prev - 1);
@@ -87,7 +114,8 @@ const Game = () => {
                         title: '¡Fin del juego!',
                         text: `Has completado ${levelsCompleted} niveles.`,
                         icon: 'error',
-                        confirmButtonText: 'Volver'
+                        confirmButtonText: 'Volver',
+                        allowOutsideClick: false
                     }).then((result) => {
                         if (result.isConfirmed) {
                             //resetGame();
@@ -99,6 +127,9 @@ const Game = () => {
         }
     }, [selectedLetters]);
 
+    if (!currentImage) return <div>Cargando...</div>;
+
+
     return (
         <div className="text-center h-screen items-center bg-blue-100"> {/* Margen superior para evitar que el contenido esté demasiado cerca del borde */}
             <div className="mb-4">
@@ -109,17 +140,18 @@ const Game = () => {
                 </div>
                 <strong>Niveles Completados: {levelsCompleted}</strong>
             </div>
-            <ImageComponent image={currentImage} missingWord={getDisplayWord()} />
+            <ImageComponent image={currentImage.url} missingWord={currentImage.word.replace(currentImage.word[currentImage.missingIndex], '_')} />
             {activeLetters.map(({ letter, id }) => (
                 <LetterComponent
                     key={id}
                     letter={letter}
                     id={id}
+                    level={levelsCompleted}
                     onClick={() => {
                         const newSelectedLetters = [...selectedLetters, letter];
                         setSelectedLetters(newSelectedLetters);
                     }}
-                    onExit={handleExit}
+                    onExit={() => handleExit(id)}
                 />
             ))}
         </div>
