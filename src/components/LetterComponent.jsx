@@ -8,7 +8,7 @@ const LetterComponent = ({ letter, id, onClick, onExit, level }) => {
   const initialX = useRef(getRandomX(window.innerWidth)).current;
   const initialY = useRef(getRandomY()).current;
   const finalX = useRef(getRandomX(window.innerWidth)).current;
-  const finalY = -800;  // destino final por encima de la pantalla
+  const finalY = -100;  // destino final por encima de la pantalla
   const baseDuration = 5;
   const [duration, setDuration] = useState(baseDuration);
   const [isExploded, setIsExploded] = useState(false);

@@ -14,7 +14,7 @@ const Game = () => {
 
     const [currentLevel, setCurrentLevel] = useState(0);
     const [currentImage, setCurrentImage] = useState(data[0]);
-    const [missingLetter, setMissingLetter] = useState(data[0].word[data[0].missingIndex]);
+    const [missingLetter, setMissingLetter] = useState('');
     const [selectedLetters, setSelectedLetters] = useState([]);
     const [activeLetters, setActiveLetters] = useState([]);
     const [letterPool, setLetterPool] = useState([]);
@@ -24,14 +24,17 @@ const Game = () => {
     useEffect(() => {
         const levelData = data.filter(item => item.lvl === parseInt(level));
         const randomIndex = Math.floor(Math.random() * levelData.length);
+        const chosenWord = levelData[randomIndex].word;
+        const randomMissingIndex = Math.floor(Math.random() * chosenWord.length); // Selecciona un índice aleatorio para la letra que falta
+
         setCurrentImage(levelData[randomIndex]);
-        setMissingLetter(levelData[randomIndex].word[levelData[randomIndex].missingIndex]);
+        setMissingLetter(chosenWord[randomMissingIndex]);
     }, [level]);
 
     useEffect(() => {
         let allLetters = generateLetters();
         setLetterPool(allLetters);
-    }, [currentLevel, missingLetter]);
+    }, [missingLetter]);
 
     useEffect(() => {
         const addLetter = () => {
@@ -64,10 +67,7 @@ const Game = () => {
     const generateLetters = () => {
         let randomLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => l !== missingLetter);
         randomLetters.sort(() => 0.5 - Math.random());
-        let lettersToShow = randomLetters.slice(0, 8);
-        lettersToShow.push(missingLetter, missingLetter, missingLetter, missingLetter,missingLetter);
-        lettersToShow.sort(() => 0.5 - Math.random());
-        return lettersToShow;
+        return [...randomLetters.slice(0, 8), missingLetter];
     };
     
 
