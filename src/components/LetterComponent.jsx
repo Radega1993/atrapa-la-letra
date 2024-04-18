@@ -33,7 +33,7 @@ const LetterComponent = ({ letter, id, onClick, onExit, level }) => {
     const newDuration = Math.max(baseDuration - level * speedFactor, minimumDuration);
     setDuration(newDuration);
   }, [level]);
-  console.log(duration);
+
   return (
     <motion.div
       initial={{ x: initialX, y: initialY }}

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 import Swal from 'sweetalert2';
 import { HeartIcon } from '@heroicons/react/24/solid';
 import { data } from '../data/levels';
@@ -7,14 +6,16 @@ import LetterComponent from './LetterComponent';
 import ImageComponent from './ImageComponent';
 import { useNavigate, useParams } from 'react-router-dom';
 
-
 const Game = () => {
     const navigate = useNavigate();
     const { level } = useParams();
 
     const [currentLevel, setCurrentLevel] = useState(0);
-    const [currentImage, setCurrentImage] = useState(data[0]);
-    const [missingLetter, setMissingLetter] = useState('');
+    const [currentImage, setCurrentImage] = useState(() => {
+        const initialData = data[0];
+        return { ...initialData, word: initialData.word.replace(initialData.word[initialData.missingIndex], '_') };
+    });
+    const [missingLetter, setMissingLetter] = useState(data[0].word[data[0].missingIndex]);
     const [selectedLetters, setSelectedLetters] = useState([]);
     const [activeLetters, setActiveLetters] = useState([]);
     const [letterPool, setLetterPool] = useState([]);
@@ -25,11 +26,17 @@ const Game = () => {
         const levelData = data.filter(item => item.lvl === parseInt(level));
         const randomIndex = Math.floor(Math.random() * levelData.length);
         const chosenWord = levelData[randomIndex].word;
-        const randomMissingIndex = Math.floor(Math.random() * chosenWord.length); // Selecciona un índice aleatorio para la letra que falta
-
-        setCurrentImage(levelData[randomIndex]);
-        setMissingLetter(chosenWord[randomMissingIndex]);
-    }, [level]);
+        const randomMissingIndex = Math.floor(Math.random() * chosenWord.length);
+    
+        const missingChar = chosenWord[randomMissingIndex];
+        const updatedWord = chosenWord.split('').map((char, index) => index === randomMissingIndex ? '_' : char).join('');
+    
+        setCurrentImage({
+            ...levelData[randomIndex],
+            word: updatedWord
+        });
+        setMissingLetter(missingChar);
+    }, [level, levelsCompleted]);
 
     useEffect(() => {
         let allLetters = generateLetters();
@@ -37,101 +44,62 @@ const Game = () => {
     }, [missingLetter]);
 
     useEffect(() => {
-        const addLetter = () => {
-            // Determina cuántas letras se pueden agregar sin superar el límite de 4
-            const maxLettersToAdd = 3 - activeLetters.length;
+        const intervalId = setInterval(() => {
+            const maxLettersToAdd = 4 - activeLetters.length;
+            if (letterPool.length < maxLettersToAdd) {
+                setLetterPool(generateLetters());
+            }
             if (maxLettersToAdd > 0) {
-                if (letterPool.length < maxLettersToAdd) {
-                    setLetterPool(generateLetters()); // Regenera el pool si las letras disponibles son menos que las necesarias
-                }
-                const lettersToAdd = Math.min(Math.floor(Math.random() * 3) + 1, maxLettersToAdd);
-                const newLetters = letterPool.splice(0, lettersToAdd); // Toma las primeras 'lettersToAdd' letras del pool
-                // Agrega las nuevas letras a las letras activas
+                const newLetters = letterPool.splice(0, maxLettersToAdd);
                 setActiveLetters(currentLetters => [
                     ...currentLetters,
-                    ...newLetters.map(letter => ({ letter, id: Math.random() })) // Crea un objeto para cada letra con un ID aleatorio
+                    ...newLetters.map(letter => ({ letter, id: Math.random() }))
                 ]);
             }
-        };
-    
-        addLetter(); // Llama a addLetter inmediatamente
-    
-        const intervalId = setInterval(() => {
-            addLetter(); // Continúa agregando letras cada 500 ms
-        }, 500); 
-    
+        }, 500);
         return () => clearInterval(intervalId);
     }, [activeLetters.length, letterPool]);
-    
-    
+
     const generateLetters = () => {
         let randomLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => l !== missingLetter);
         randomLetters.sort(() => 0.5 - Math.random());
-        return [...randomLetters.slice(0, 8), missingLetter];
+        // Añade la letra faltante múltiples veces para aumentar su frecuencia
+        const extraOccurrences = 4; // Añade 4 instancias extra de la letra que falta
+        return [...randomLetters.slice(0, 7), ...Array(extraOccurrences).fill(missingLetter)].sort(() => 0.5 - Math.random());
     };
-    
 
     const handleExit = (letterId) => {
         setActiveLetters(currentLetters => currentLetters.filter(letter => letter.id !== letterId));
     };
 
     useEffect(() => {
-        if (selectedLetters.length > 0) {
-            const lastSelectedLetter = selectedLetters.at(-1);
-            if (lastSelectedLetter === missingLetter) {
-                setLevelsCompleted(prev => prev + 1);
-    
-                // Suponiendo que 'currentImage' tenga todos los datos del nivel actual,
-                // incluido el índice actual y la URL de la imagen.
-                const currentWord = currentImage.word;
-                const currentImageUrl = `/img/${currentImage.url}`;
-    
-                Swal.fire({
-                    title: '¡Muy bien!',
-                    html: `<p>La palabra correcta es <strong>${currentWord}</strong></p>
-                            <div style="text-align: center;"><img src="${currentImageUrl}" alt="Imagen" style="width: 100%; max-width: 300px; margin: auto; display: block;"/></div>`,
-                    icon: 'success',
-                    confirmButtonText: 'Siguiente',
-                    allowOutsideClick: false
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Genera un nuevo índice aleatorio para el siguiente nivel y actualiza el estado correspondiente.
-                        const levelData = data.filter(item => item.lvl === parseInt(level));
-                        const nextIndex = Math.floor(Math.random() * levelData.length);
-    
-                        setCurrentLevel(nextIndex);
-                        setCurrentImage(levelData[nextIndex]);
-                        setMissingLetter(levelData[nextIndex].word[levelData[nextIndex].missingIndex]);
-                        setActiveLetters([]);
-                        setLetterPool(generateLetters());
-                    }
-                });
+        if (selectedLetters.length > 0 && selectedLetters.at(-1) === missingLetter) {
+            setLevelsCompleted(levelsCompleted + 1);
+            Swal.fire({
+                title: '¡Muy bien!',
+                html: `<p>La palabra correcta es <strong>${currentImage.word.replace('_', missingLetter)}</strong></p>
+                       <div style="text-align: center;"><img src="/img/${currentImage.url}" alt="Imagen" style="width: 100%; max-width: 300px; margin: auto; display: block;"/></div>`,
+                icon: 'success',
+                confirmButtonText: 'Siguiente',
+                allowOutsideClick: false
+            });
+        } else if (selectedLetters.length > 0) {
+            if (lives > 1) {
+                setLives(lives - 1);
             } else {
-                if (lives > 1) {
-                    setLives(prev => prev - 1);
-                } else {
-                    Swal.fire({
-                        title: '¡Fin del juego!',
-                        text: `Has completado ${levelsCompleted} niveles.`,
-                        icon: 'error',
-                        confirmButtonText: 'Volver',
-                        allowOutsideClick: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            //resetGame();
-                            navigate('/');
-                        }
-                    });
-                }
+                Swal.fire({
+                    title: '¡Fin del juego!',
+                    text: `Has completado ${levelsCompleted} niveles.`,
+                    icon: 'error',
+                    confirmButtonText: 'Volver',
+                    allowOutsideClick: false
+                }).then(() => navigate('/'));
             }
         }
     }, [selectedLetters]);
 
-    if (!currentImage) return <div>Cargando...</div>;
-
-
     return (
-        <div className="text-center h-screen items-center bg-blue-100"> {/* Margen superior para evitar que el contenido esté demasiado cerca del borde */}
+        <div className="text-center h-screen items-center bg-blue-100">
             <div className="mb-4">
                 <div className="flex justify-center items-center gap-2">
                     {Array.from({ length: lives }, (_, i) => (
@@ -140,18 +108,15 @@ const Game = () => {
                 </div>
                 <strong>Niveles Completados: {levelsCompleted}</strong>
             </div>
-            <ImageComponent image={currentImage.url} missingWord={currentImage.word.replace(currentImage.word[currentImage.missingIndex], '_')} />
+            <ImageComponent image={`/img/${currentImage.url}`} missingWord={currentImage.word} />
             {activeLetters.map(({ letter, id }) => (
                 <LetterComponent
                     key={id}
                     letter={letter}
                     id={id}
                     level={levelsCompleted}
-                    onClick={() => {
-                        const newSelectedLetters = [...selectedLetters, letter];
-                        setSelectedLetters(newSelectedLetters);
-                    }}
-                    onExit={() => handleExit(id)}
+                    onClick={() => setSelectedLetters([...selectedLetters, letter])}
+                    onExit={handleExit}
                 />
             ))}
         </div>
