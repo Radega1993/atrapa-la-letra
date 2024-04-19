@@ -99,7 +99,14 @@ const Game = () => {
     }, [selectedLetters]);
 
     return (
-        <div className="text-center h-screen items-center bg-blue-100">
+        <>
+        <div className="sky">
+                <div className="cloud" style={{ top: '10%', width: '200px', height: '200px' }}></div>
+                <div className="cloud" style={{ top: '30%', width: '180px', height: '180px', animationDelay: '15s' }}></div>
+                <div className="cloud" style={{ top: '50%', animationDelay: '30s' }}></div>
+                <div className="cloud" style={{ top: '70%', width: '150px', height: '150px', animationDelay: '45s' }}></div>
+            </div>
+        <div className="text-center h-screen items-center">
             <div className="mb-4">
                 <div className="flex justify-center items-center gap-2">
                     {Array.from({ length: lives }, (_, i) => (
@@ -111,15 +118,17 @@ const Game = () => {
             <ImageComponent image={`/img/${currentImage.url}`} missingWord={currentImage.word} />
             {activeLetters.map(({ letter, id }) => (
                 <LetterComponent
-                    key={id}
-                    letter={letter}
+                key={id}
+                letter={letter}
                     id={id}
                     level={levelsCompleted}
                     onClick={() => setSelectedLetters([...selectedLetters, letter])}
                     onExit={handleExit}
-                />
-            ))}
+                    />
+                ))}
         </div>
+               
+                </>
     );
 };
 

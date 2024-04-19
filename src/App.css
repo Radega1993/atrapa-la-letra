@@ -5,3 +5,165 @@
   position: relative; /* Para posicionar letras absolutamente respecto a este contenedor */
   overflow: hidden; /* Asegura que no haya scroll */
 }
+
+
+/* ----- Background ----- */
+/* Keyframes for moving the clouds from beyond the left edge to beyond the right edge */
+@keyframes moveClouds {
+  0% { transform: translateX(-100vh); }
+  100% { transform: translateX(100vw); }
+}
+
+.sky {
+  width: 100vw;
+  height: 100vh;
+  background-color: #87CEEB; /* light blue sky */
+  overflow: hidden;
+  position: fixed; /* Ensure background is always fixed and full-screen */
+  top: 0;
+  left: 0;
+  z-index: -1; /* Keeps the sky behind all other content */
+}
+
+.cloud {
+  position: absolute;
+  bottom: 50%; /* Position the cloud vertically */
+  left: 50%; /* Start moving from the middle */
+  display: block;
+  width: 3em;
+  height: 3em;
+  margin: 2em auto;
+  color: #3498db;
+  background: #fff;
+  border-width: 0.25em;
+  border-style: solid;
+  border-radius: 50% 50% 0 0;
+
+  /* Attach the moveClouds animation */
+  animation: moveClouds 25s linear infinite both;
+}
+
+.cloud:before,
+.cloud:after {
+  content: '';
+  position: absolute;
+  bottom: -0.25em;
+  background: inherit;
+  border-width: 0.25em;
+  border-style: solid;
+}
+
+.cloud:before {
+  left: 80%;
+  width: 60%;
+  height: 60%;
+  border-left: none;
+  border-radius: 50% 50% 50% 0;
+}
+
+.cloud:after {
+  right: 80%;
+  width: 80%;
+  height: 80%;
+  border-right: none;
+  border-radius: 50% 50% 0;
+}
+
+
+/* ---------------------- */
+
+
+/* ----- Ballon ----- */
+
+.balloon {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border-radius: 50%;
+  background-color: #FF5733;
+  color: white;
+  font-size: 24px;
+}
+
+.balloon span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background-color: #FF5733;
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0; 
+  transition: transform 0.5s, opacity 0.5s;
+  transform: scale(0);
+}
+
+.balloon.exploded {
+  background-color: transparent; 
+  color: transparent; 
+}
+
+.balloon.exploded span {
+  opacity: 1;
+  transform: scale(1) translate(var(--tx), var(--ty));
+}
+
+.balloon::after { /* tail of the balloon */
+  content: '';
+  width: 20px;
+  height: 20px;
+  background-color: #FF5733;
+  position: absolute;
+  bottom: -10px;
+  left: 40px;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.balloon::before { /* rope of the balloon */
+  content: '';
+  width: 2px; /* width of the rope */
+  height: 50px; /* length of the rope */
+  background-color: #654321; /* rope color */
+  position: absolute;
+  bottom: -55px; /* adjust based on the length of the tail */
+  left: 50px; /* align with the center of the balloon */
+}
+
+.balloon.exploded {
+  background-color: transparent; /* Makes the balloon transparent */
+  color: transparent; /* Hides the letter */
+  overflow: visible;
+}
+
+.balloon.exploded::before, .balloon.exploded::after {
+  content: '';
+  background-color: #FF5733; /* fragments should match balloon color */
+  width: 50px; /* increased size of fragments */
+  height: 70px; /* increased size of fragments */
+  position: absolute;
+  border-radius: 50%; /* make fragments rounded */
+  animation: explode 0.75s ease-out forwards; /* slower exploding animation */
+}
+
+.balloon.exploded::before {
+  top: 20px; /* initial position slightly adjusted */
+  left: -30px;
+  transform: scale(0);
+}
+
+.balloon.exploded::after {
+  bottom: 20px;
+  right: -30px;
+  transform: scale(0);
+}
+
+@keyframes explode {
+  to {
+    transform: scale(1.5) translate(-80px, -80px); /* larger movement and scale */
+    opacity: 0.3; /* fragments fade out slower */
+  }
+}
+
+/* ---------------------- */

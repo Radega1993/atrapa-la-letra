@@ -10,6 +10,74 @@ html, body, #root {
   width: 100vw; /* Ancho del 100% del viewport */
 }
 
+/* ----- Background ----- */
+/* Keyframes for moving the clouds from beyond the left edge to beyond the right edge */
+@keyframes moveClouds {
+  0% { transform: translateX(-100vh); }
+  100% { transform: translateX(100vw); }
+}
+
+.sky {
+  width: 100vw;
+  height: 100vh;
+  background-color: #87CEEB; /* light blue sky */
+  overflow: hidden;
+  position: fixed; /* Ensure background is always fixed and full-screen */
+  top: 0;
+  left: 0;
+  z-index: -1; /* Keeps the sky behind all other content */
+}
+
+.cloud {
+  position: absolute;
+  bottom: 50%; /* Position the cloud vertically */
+  left: 50%; /* Start moving from the middle */
+  display: block;
+  width: 3em;
+  height: 3em;
+  margin: 2em auto;
+  color: #3498db;
+  background: #fff;
+  border-width: 0.25em;
+  border-style: solid;
+  border-radius: 50% 50% 0 0;
+
+  /* Attach the moveClouds animation */
+  animation: moveClouds 25s linear infinite both;
+}
+
+.cloud:before,
+.cloud:after {
+  content: '';
+  position: absolute;
+  bottom: -0.25em;
+  background: inherit;
+  border-width: 0.25em;
+  border-style: solid;
+}
+
+.cloud:before {
+  left: 80%;
+  width: 60%;
+  height: 60%;
+  border-left: none;
+  border-radius: 50% 50% 50% 0;
+}
+
+.cloud:after {
+  right: 80%;
+  width: 80%;
+  height: 80%;
+  border-right: none;
+  border-radius: 50% 50% 0;
+}
+
+
+/* ---------------------- */
+
+
+/* ----- Ballon ----- */
+
 .balloon {
   width: 100px;
   height: 100px;
@@ -100,3 +168,5 @@ html, body, #root {
     opacity: 0.3; /* fragments fade out slower */
   }
 }
+
+/* ---------------------- */
