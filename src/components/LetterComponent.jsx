@@ -5,6 +5,9 @@ const getRandomX = (max) => Math.random() * max;
 const getRandomY = () => Math.random() * 100 + window.innerHeight;
 
 const LetterComponent = ({ letter, id, onClick, onExit, level }) => {
+  const audio = useRef(new Audio('/sounds/ballon.mp3'));
+
+
   const initialX = useRef(getRandomX(window.innerWidth)).current;
   const initialY = useRef(getRandomY()).current;
   const finalX = useRef(getRandomX(window.innerWidth)).current;
@@ -31,9 +34,11 @@ const LetterComponent = ({ letter, id, onClick, onExit, level }) => {
     setDuration(newDuration);
   }, [level]);
 
-  const handleExplode = () => {
-    setIsExploded(true);
-    setTimeout(() => onExit(id), 200);
+  const handleOnClick = () => {
+    onClick(letter);  // Call the onClick function provided by the parent component
+    audio.current.play().catch(e => console.log('Error playing sound:', e));  // Play the audio
+    setIsExploded(true);  // Trigger any visual effect for exploding
+    setTimeout(() => onExit(id), 200);  // Call onExit after a delay, ensuring visual effects can be seen
   };
 
   return (
@@ -41,10 +46,7 @@ const LetterComponent = ({ letter, id, onClick, onExit, level }) => {
       initial={{ x: initialX, y: initialY }}
       animate={{ x: finalX, y: finalY, scale: isExploded ? 1.2 : 1, opacity: isExploded ? 0 : 1 }}
       transition={{ duration: isExploded ? 0.2 : duration, ease: "linear" }}
-      onClick={() => {
-        onClick(letter);
-        handleExplode();
-      }}
+      onClick={handleOnClick}
       onAnimationComplete={() => {
         if (!isExploded) {
           onExit(id);

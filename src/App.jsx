@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const App = () => {
     const navigate = useNavigate();
+    const audioWin = useRef(new Audio('/sounds/win.wav'));
+
 
     const startGame = (level) => {
         navigate(`/game/${level}`);
@@ -21,15 +23,24 @@ const App = () => {
                     <img src={`${process.env.PUBLIC_URL}/logo512.png`} alt="Logo" className="mx-auto" style={{ maxWidth: '300px', width: '100%' }} />
                     <div className="mb-5">
                         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded focus:outline-none focus:shadow-outline"
-                            onClick={() => startGame(1)}>
+                            onClick={() => {
+                                audioWin.current.play();
+                                startGame(1)
+                                }}>
                             Nivel 1
                         </button>
                         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded focus:outline-none focus:shadow-outline"
-                            onClick={() => startGame(2)}>
+                            onClick={() => {
+                                audioWin.current.play();
+                                startGame(2)
+                                }}>
                             Nivel 2
                         </button>
                         <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 m-2 rounded focus:outline-none focus:shadow-outline"
-                            onClick={() => startGame(3)}>
+                            onClick={() => {
+                                audioWin.current.play();
+                                startGame(3)
+                                }}>
                             Nivel 3
                         </button>
                     </div>
