@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { PlayIcon, MusicalNoteIcon, PauseIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/solid';
+import { MusicalNoteIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/solid';
 
 const BackgroundMusic = () => {
   const audioRef = useRef(new Audio('/sounds/game.mp3'));
@@ -26,9 +26,9 @@ const BackgroundMusic = () => {
     }
   }, [volumeLevel, isPlaying]);
 
-  const togglePlayPause = () => {
-    setIsPlaying(prev => !prev);
-  };
+  // const togglePlayPause = () => {
+  //   setIsPlaying(prev => !prev);
+  // };
 
   const adjustVolume = () => {
     const nextVolumeLevel = (volumeLevel + 1) % 3;
@@ -66,12 +66,12 @@ const BackgroundMusic = () => {
 
   return (
     <div>
-      <button 
+      {/* <button 
         onClick={togglePlayPause} 
         className="fixed right-4 bottom-20 bg-gray-300 rounded-full p-2 shadow-lg hover:bg-gray-400 z-50 cursor-pointer"
       >
         {isPlaying ? <PauseIcon className="h-6 w-6 text-white" /> : <PlayIcon className="h-6 w-6 text-white" />}
-      </button>
+      </button> */}
       <button 
         onClick={adjustVolume} 
         className="fixed right-4 bottom-4 bg-gray-300 rounded-full p-2 shadow-lg hover:bg-gray-400 z-50 cursor-pointer"
